@@ -67,9 +67,9 @@ export async function POST(request: Request) {
       try {
         response = await cohere.generate({
           prompt: message,
-          max_tokens: 500,
+          maxTokens: 500,
           temperature: 0.8,
-          model: 'command',  // Using stable version instead of nightly
+          model: 'command',
         });
         aiResponse = response.generations[0].text.trim();
       } catch (error) {
