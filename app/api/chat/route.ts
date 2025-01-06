@@ -14,9 +14,9 @@ const MODELS = [
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { message, provider } = body;
+    const { message, provider, userId } = body;
 
-    console.log('Request received:', { message, provider });
+    console.log('Request received:', { message, provider, userId });
 
     let response;
     let aiResponse;
@@ -39,16 +39,18 @@ export async function POST(request: Request) {
     }
 
     // Only try to store in Firebase if we have a response
-    if (aiResponse) {
+    if (aiResponse && userId) {
       try {
-        await addDoc(collection(db, 'conversations'), {
+        console.log('Storing conversation for user:', userId);
+        const docRef = await addDoc(collection(db, 'conversations'), {
           userMessage: message,
           aiResponse: aiResponse,
           provider: provider,
           timestamp: new Date(),
+          userId: userId,
         });
+        console.log('Stored with document ID:', docRef.id);
       } catch (storageError) {
-        // Log but don't throw Firebase errors
         console.error('Firebase storage error:', storageError);
       }
     }

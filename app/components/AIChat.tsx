@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useApi } from '../hooks/useApi';
 import { useToast } from '../context/ToastContext';
 import LoadingSpinner from './LoadingSpinner';
+import { useAuth } from '../context/AuthContext';
 
 interface Message {
   role: 'user' | 'ai';
@@ -16,6 +17,7 @@ const AIChat = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { loading, execute } = useApi();
   const { showToast } = useToast();
+  const { user } = useAuth();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -27,7 +29,7 @@ const AIChat = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || !user) return;
 
     const userMessage = input.trim();
     setInput('');
@@ -38,7 +40,11 @@ const AIChat = () => {
         fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: userMessage, provider: 'huggingface' }),
+          body: JSON.stringify({ 
+            message: userMessage, 
+            provider: 'huggingface',
+            userId: user.uid
+          }),
         }).then(res => res.json()),
         {
           onSuccess: () => {
