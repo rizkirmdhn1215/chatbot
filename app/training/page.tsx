@@ -1,10 +1,13 @@
 import TrainingInterface from '../components/TrainingInterface';
 import Layout from '../components/Layout';
+import ProtectedRoute from '../components/ProtectedRoute';
 
 export default function TrainingPage() {
   return (
-    <Layout>
-      <TrainingInterface />
-    </Layout>
+    <ProtectedRoute>
+      <Layout>
+        <TrainingInterface />
+      </Layout>
+    </ProtectedRoute>
   );
 } 

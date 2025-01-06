@@ -1,13 +1,9 @@
 import { db } from '@/app/lib/firebase';
 import { collection, getDocs, addDoc } from 'firebase/firestore';
 import { HfInference } from '@huggingface/inference';
-import { CohereClient } from 'cohere-ai';
 import { NextResponse } from 'next/server';
 
 const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
-const cohere = new CohereClient({ 
-  token: process.env.COHERE_API_KEY || '' 
-});
 
 // Let's use a simpler set of models that are more likely to work
 const MODELS = [
@@ -26,54 +22,18 @@ export async function POST(request: Request) {
     let aiResponse;
 
     if (provider === 'huggingface') {
-      const enhancedPrompt = `
-        Question: ${message}
-        
-        Please provide a helpful and friendly response.
-      `.trim();
-
-      let success = false;
-      let lastError = null;
-
-      for (const model of MODELS) {
-        try {
-          console.log(`Attempting to use model: ${model}`);
-          
-          response = await hf.textGeneration({
-            model: model,
-            inputs: enhancedPrompt,
-            parameters: {
-              max_length: 500,
-              temperature: 0.7,
-              top_p: 0.95,
-            }
-          });
-          
-          aiResponse = response.generated_text;
-          success = true;
-          console.log(`Successfully used model: ${model}`);
-          break;
-        } catch (error) {
-          console.error(`Error with model ${model}:`, error);
-          lastError = error;
-        }
-      }
-
-      if (!success) {
-        throw lastError || new Error('All models failed');
-      }
-
-    } else if (provider === 'cohere') {
       try {
-        response = await cohere.generate({
-          prompt: message,
-          maxTokens: 500,
-          temperature: 0.8,
-          model: 'command',
+        response = await hf.textGeneration({
+          model: MODELS[0],
+          inputs: message,
+          parameters: {
+            max_new_tokens: 250,
+            temperature: 0.7,
+          },
         });
-        aiResponse = response.generations[0].text.trim();
+        aiResponse = response.generated_text.trim();
       } catch (error) {
-        console.error('Cohere API error:', error);
+        console.error('Hugging Face API error:', error);
         throw error;
       }
     }
